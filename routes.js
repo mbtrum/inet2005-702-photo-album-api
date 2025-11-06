@@ -1,29 +1,58 @@
 import express from 'express';
+import sql from 'mssql';
+import 'dotenv/config';
 
 const router = express.Router();
 
-// GET: /api/photos
-router.get('/', (req, res) => {
-  
-    // create some sample photo data
-    const photos = [
-        { id: 1, title: 'Sunset', description: 'Beautiful sunset over the hills' },
-        { id: 2, title: 'Mountain', description: 'Majestic mountain range' },
-        { id: 3, title: 'Ocean', description: 'Calm ocean waves' },
-    ];
+// get connection string from environment variable
+const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
-    res.json(photos);
+// GET: /api/photos
+router.get('/', async (req, res) => {
+  
+    // make sure that any items are correctly URL encoded in the connection string
+    await sql.connect(dbConnectionString);
+    
+    const result = await sql.query`SELECT a.[PhotoId], a.[Title] as PhotoTitle, a.[Description], a.[Filename], a.[CreateDate], a.[Camera], b.[CategoryId], b.[Title] as CategoryTitle
+        from [dbo].[Photo] a 
+        INNER JOIN [dbo].[Category] b 
+        ON a.[CategoryId] = b.[CategoryId]
+        ORDER BY a.[CreateDate] DESC`;
+    
+    console.dir(result);
+
+    // return the results as json
+    res.json(result.recordset);
   
 });
 
 // GET: /api/photos/1
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = req.params.id;
 
-    // create a sample photo object
-    const photo = { id: id, title: 'Sample Photo', description: 'This is a sample photo description.' };
+    if(isNaN(id)) {
+        res.status(400).send('Invalid photo ID.');
+        return;
+    }
 
-    res.json(photo);  
+    // make sure that any items are correctly URL encoded in the connection string
+    await sql.connect(dbConnectionString);
+    
+    const result = await sql.query`SELECT a.[PhotoId], a.[Title] as PhotoTitle, a.[Description], a.[Filename], a.[CreateDate], a.[Camera], b.[CategoryId], b.[Title] as CategoryTitle
+        from [dbo].[Photo] a 
+        INNER JOIN [dbo].[Category] b 
+        ON a.[CategoryId] = b.[CategoryId]
+        WHERE a.[PhotoId] = ${id}`;
+    
+    console.dir(result);
+
+    // return the results as json
+    if(result.recordset.length === 0) {
+        res.status(404).send('Photo not found.');
+    }
+    else {
+        res.json(result.recordset); 
+    }
 });
 
 export default router;
