@@ -19,8 +19,6 @@ router.get('/', async (req, res) => {
         ON a.[CategoryId] = b.[CategoryId]
         ORDER BY a.[CreateDate] DESC`;
     
-    console.dir(result);
-
     // return the results as json
     res.json(result.recordset);
   
@@ -44,15 +42,34 @@ router.get('/:id', async (req, res) => {
         ON a.[CategoryId] = b.[CategoryId]
         WHERE a.[PhotoId] = ${id}`;
     
-    console.dir(result);
-
     // return the results as json
     if(result.recordset.length === 0) {
-        res.status(404).send('Photo not found.');
+        res.status(404).json({ message: 'Photo not found.'});        
     }
     else {
         res.json(result.recordset); 
     }
 });
+
+// POST: /api/photos
+router.post('/', async (req, res) => {
+    const photo = req.body;
+
+    // To-Do: validate proper JSON structure
+
+    //
+    // TO-DO: Add validation for photo object
+    //
+
+    await sql.connect(dbConnectionString);
+
+    const result = await sql.query`INSERT INTO [dbo].[Comment] 
+        (Body, Author, CreateDate, PhotoId) 
+        VALUES 
+        (${photo.Body}, ${photo.Author}, GETDATE(), ${photo.PhotoId})`;
+
+    res.json({ message: 'Comment added successfully.'});
+});
+
 
 export default router;
