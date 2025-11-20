@@ -4,7 +4,7 @@ import 'dotenv/config';
 
 const router = express.Router();
 
-// get connection string from environment variable
+// get connection string from ennpm run vironment variable
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 
 // GET: /api/photos
@@ -18,6 +18,8 @@ router.get('/', async (req, res) => {
         INNER JOIN [dbo].[Category] b 
         ON a.[CategoryId] = b.[CategoryId]
         ORDER BY a.[CreateDate] DESC`;
+
+    console.log("Photos retrieved:", result.recordset.length);
     
     // return the results as json
     res.json(result.recordset);
@@ -41,6 +43,8 @@ router.get('/:id', async (req, res) => {
         INNER JOIN [dbo].[Category] b 
         ON a.[CategoryId] = b.[CategoryId]
         WHERE a.[PhotoId] = ${id}`;
+    
+        console.log("Photo retrieved by ID:", result.recordset.length);
     
     // return the results as json
     if(result.recordset.length === 0) {
@@ -68,6 +72,8 @@ router.post('/', async (req, res) => {
         VALUES 
         (${photo.Body}, ${photo.Author}, GETDATE(), ${photo.PhotoId})`;
 
+    console.log("Comment added:", result.rowsAffected);
+    
     res.json({ message: 'Comment added successfully.'});
 });
 
