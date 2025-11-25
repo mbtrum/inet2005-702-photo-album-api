@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
         res.status(404).json({ message: 'Photo not found.'});        
     }
     else {
-        res.json(result.recordset); 
+        res.json(result.recordset[0]); // only return the first row (should always be the case)
     }
 });
 
